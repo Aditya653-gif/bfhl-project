@@ -10,7 +10,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type"]
 }));
 
-app.options("*", cors()); // ✅ handle preflight
+app.use(cors()); // ✅ handle preflight
 
 // ✅ JSON parser
 app.use(express.json());
