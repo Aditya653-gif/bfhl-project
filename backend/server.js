@@ -3,25 +3,20 @@ const cors = require("cors");
 
 const app = express();
 
-// ✅ CORS (very important)
+// ✅ CORS (handles browser requests properly)
 app.use(cors({
   origin: "*",
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
+
+app.options("*", cors()); // ✅ handle preflight
 
 // ✅ JSON parser
 app.use(express.json());
 
-// ✅ Extra headers (for strict browsers)
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "*");
-  next();
-});
 
-
-// 🔹 Helper function to build hierarchy
+// 🔹 Build hierarchy
 function buildHierarchy(edges) {
   const tree = {};
   const children = new Set();
@@ -38,7 +33,7 @@ function buildHierarchy(edges) {
     tree[parent][child] = {};
   });
 
-  // find root (node that is never a child)
+  // find root
   let root = "";
   for (let node of nodes) {
     if (!children.has(node)) {
@@ -47,7 +42,7 @@ function buildHierarchy(edges) {
     }
   }
 
-  // calculate depth
+  // depth
   function getDepth(node) {
     if (!tree[node] || Object.keys(tree[node]).length === 0) return 1;
 
@@ -73,7 +68,6 @@ app.post("/bfhl", (req, res) => {
   const valid = [];
   const invalid_entries = [];
 
-  // validate edges
   data.forEach(edge => {
     if (typeof edge === "string" && edge.includes("->")) {
       valid.push(edge);
@@ -102,7 +96,13 @@ app.post("/bfhl", (req, res) => {
 });
 
 
-// ✅ IMPORTANT for Render
+// ✅ ROOT ROUTE (important for testing)
+app.get("/", (req, res) => {
+  res.send("BFHL API is running 🚀");
+});
+
+
+// ✅ PORT FIX (VERY IMPORTANT for Render)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
